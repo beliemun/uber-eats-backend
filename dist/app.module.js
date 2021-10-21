@@ -9,6 +9,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.AppModule = void 0;
 const common_1 = require("@nestjs/common");
 const graphql_1 = require("@nestjs/graphql");
+const typeorm_1 = require("@nestjs/typeorm");
 const restaurants_module_1 = require("./restaurants/restaurants.module");
 let AppModule = class AppModule {
 };
@@ -17,6 +18,16 @@ AppModule = __decorate([
         imports: [
             graphql_1.GraphQLModule.forRoot({
                 autoSchemaFile: true,
+            }),
+            typeorm_1.TypeOrmModule.forRoot({
+                type: 'postgres',
+                host: 'localhost',
+                port: 5432,
+                username: 'burngrit',
+                password: '1234',
+                database: 'uber-eats',
+                synchronize: true,
+                logging: true,
             }),
             restaurants_module_1.RestaurantsModule,
         ],
