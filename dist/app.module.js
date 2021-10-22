@@ -8,26 +8,41 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AppModule = void 0;
 const common_1 = require("@nestjs/common");
+const config_1 = require("@nestjs/config");
 const graphql_1 = require("@nestjs/graphql");
 const typeorm_1 = require("@nestjs/typeorm");
 const restaurants_module_1 = require("./restaurants/restaurants.module");
+const Joi = require("joi");
 let AppModule = class AppModule {
 };
 AppModule = __decorate([
     (0, common_1.Module)({
         imports: [
-            graphql_1.GraphQLModule.forRoot({
-                autoSchemaFile: true,
+            config_1.ConfigModule.forRoot({
+                isGlobal: true,
+                envFilePath: process.env.NODE_ENV === 'dev' ? '.env.dev' : '.env.test',
+                ignoreEnvFile: process.env.NODE_ENV === 'production',
+                validationSchema: Joi.object({
+                    NODE_ENV: Joi.string().valid('dev', 'production').required(),
+                    DB_HOST: Joi.string().required(),
+                    DB_PORT: Joi.string().required(),
+                    DB_USERNAME: Joi.string().required(),
+                    DB_PASSSWORD: Joi.string().required(),
+                    DB_NAME: Joi.string().required(),
+                }),
             }),
             typeorm_1.TypeOrmModule.forRoot({
                 type: 'postgres',
-                host: 'localhost',
-                port: 5432,
-                username: 'burngrit',
-                password: '1234',
-                database: 'uber-eats',
+                host: process.env.DB_HOST,
+                port: +process.env.DB_PORT,
+                username: process.env.DB_USERNAME,
+                password: process.env.DB_PASSSWORD,
+                database: process.env.DB_NAME,
                 synchronize: true,
                 logging: true,
+            }),
+            graphql_1.GraphQLModule.forRoot({
+                autoSchemaFile: true,
             }),
             restaurants_module_1.RestaurantsModule,
         ],
