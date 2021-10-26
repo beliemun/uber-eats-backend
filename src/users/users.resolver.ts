@@ -7,16 +7,15 @@ import {
   CreateAccountOutput,
 } from './dtos/create-account.dto';
 import { LoginInput, LoginOutput } from './dtos/login.dto';
+import { User } from './entities/user.entity';
 import { UsersService } from './users.service';
 
 @Resolver((of) => UsersResolver)
 export class UsersResolver {
   constructor(private readonly usersService: UsersService) {}
 
-  @Query((returns) => Boolean)
-  hi() {
-    return true;
-  }
+  @Query((returns) => User)
+  me() {}
 
   @Mutation((returns) => CreateAccountOutput)
   async createAccount(
