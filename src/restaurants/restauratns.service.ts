@@ -9,18 +9,18 @@ import { Restaurant } from './entities/restaurant.entity';
 export class RestaurantService {
   constructor(
     @InjectRepository(Restaurant)
-    private readonly repository: Repository<Restaurant>,
+    private readonly restaurants: Repository<Restaurant>,
   ) {}
   getAll(): Promise<Restaurant[]> {
-    return this.repository.find();
+    return this.restaurants.find();
   }
   createRestaurant(
     createRestaurantDto: CreateRestaurantDto,
   ): Promise<Restaurant> {
-    const newRestaurant = this.repository.create(createRestaurantDto);
-    return this.repository.save(newRestaurant);
+    const newRestaurant = this.restaurants.create(createRestaurantDto);
+    return this.restaurants.save(newRestaurant);
   }
   updateRestaurant({ id, data }: UpdateRestaurantDto) {
-    return this.repository.update(id, { ...data });
+    return this.restaurants.update(id, { ...data });
   }
 }
