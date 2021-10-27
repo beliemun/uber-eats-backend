@@ -27,7 +27,8 @@ export class User extends CoreEntity {
   @IsEmail()
   email: string;
 
-  @Column()
+  // select:false => verifyEmail()을 호출할 때, @BeforeUpdate()가 호출되는 것을 막기 위해 사용.
+  @Column({ select: false })
   @Field((type) => String)
   password: string;
 
@@ -43,11 +44,14 @@ export class User extends CoreEntity {
   @BeforeInsert()
   @BeforeUpdate()
   async hashPassword(): Promise<void> {
-    try {
-      this.password = await bcrypt.hash(this.password, 10);
-    } catch (e) {
-      console.log(e);
-      throw new InternalServerErrorException();
+    // password를 select한 뒤부터는 빈값이기 때문에 password 값이 정확히 존재할 경우에만 업데이트한다.
+    if (this.password) {
+      try {
+        this.password = await bcrypt.hash(this.password, 10);
+      } catch (e) {
+        console.log(e);
+        throw new InternalServerErrorException();
+      }
     }
   }
 
