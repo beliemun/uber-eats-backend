@@ -105,6 +105,9 @@ export class UsersService {
     try {
       // find an user
       const user = await this.users.findOne(userId);
+      if (!user) {
+        throw new Error('User not found.');
+      }
       // if email is changed, user.verified must change to false
       if (email) {
         user.email = email;
