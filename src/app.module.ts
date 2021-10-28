@@ -14,6 +14,8 @@ import { JwtModule } from './jwt/jwt.module';
 import { JwtMiddleware } from './jwt/jwt.middleware';
 import { AuthModule } from './auth/auth.module';
 import { Verification } from './users/entities/verification.entity';
+import { RestaurantsModule } from './restaurants/restaurants.module';
+import { Restaurant } from './restaurants/entities/restaurant.entity';
 
 @Module({
   imports: [
@@ -40,7 +42,7 @@ import { Verification } from './users/entities/verification.entity';
       database: process.env.DB_NAME,
       synchronize: process.env.NODE_ENV !== 'production',
       logging: process.env.NODE_ENV !== 'production',
-      entities: [User, Verification],
+      entities: [User, Verification, Restaurant],
     }),
     GraphQLModule.forRoot({
       autoSchemaFile: true,
@@ -50,6 +52,7 @@ import { Verification } from './users/entities/verification.entity';
     }),
     JwtModule.forRoot({ privateKey: process.env.TOKEN_PRIVATE_KEY }),
     UsersModule,
+    RestaurantsModule,
     AuthModule,
   ],
   controllers: [],

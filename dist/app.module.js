@@ -18,6 +18,8 @@ const jwt_module_1 = require("./jwt/jwt.module");
 const jwt_middleware_1 = require("./jwt/jwt.middleware");
 const auth_module_1 = require("./auth/auth.module");
 const verification_entity_1 = require("./users/entities/verification.entity");
+const restaurants_module_1 = require("./restaurants/restaurants.module");
+const restaurant_entity_1 = require("./restaurants/entities/restaurant.entity");
 let AppModule = class AppModule {
     configure(consumer) {
         consumer.apply(jwt_middleware_1.JwtMiddleware).forRoutes({
@@ -52,7 +54,7 @@ AppModule = __decorate([
                 database: process.env.DB_NAME,
                 synchronize: process.env.NODE_ENV !== 'production',
                 logging: process.env.NODE_ENV !== 'production',
-                entities: [user_entity_1.User, verification_entity_1.Verification],
+                entities: [user_entity_1.User, verification_entity_1.Verification, restaurant_entity_1.Restaurant],
             }),
             graphql_1.GraphQLModule.forRoot({
                 autoSchemaFile: true,
@@ -62,6 +64,7 @@ AppModule = __decorate([
             }),
             jwt_module_1.JwtModule.forRoot({ privateKey: process.env.TOKEN_PRIVATE_KEY }),
             users_module_1.UsersModule,
+            restaurants_module_1.RestaurantsModule,
             auth_module_1.AuthModule,
         ],
         controllers: [],

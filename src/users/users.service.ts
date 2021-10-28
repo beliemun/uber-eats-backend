@@ -2,13 +2,18 @@ import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as jwt from 'jsonwebtoken';
-import { CreateAccountInput } from './dtos/create-account.dto';
-import { LoginInput } from './dtos/login.dto';
+import {
+  CreateAccountInput,
+  CreateAccountOutput,
+} from './dtos/create-account.dto';
+import { LoginInput, LoginOutput } from './dtos/login.dto';
 import { User } from './entities/user.entity';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from 'src/jwt/jwt.service';
 import { EditProfileInput, EditProfileOutput } from './dtos/edit-profile.dto';
 import { Verification } from './entities/verification.entity';
+import { VerifyEmailOutput } from './dtos/verify-email.dto';
+import { UserProfileOutput } from './dtos/user-profile.tdo';
 
 @Injectable()
 export class UsersService {
@@ -19,12 +24,25 @@ export class UsersService {
     private readonly jwtService: JwtService,
   ) {}
 
+  async findById(id: number): Promise<UserProfileOutput> {
+    try {
+      const user = await this.users.findOne({ id });
+      if (user) {
+        return { ok: true, user };
+      }
+      throw new Error('User not found.');
+    } catch (error) {
+      return { ok: false, error };
+    }
+  }
+
   async createAccount({
     email,
     password,
     role,
-  }: CreateAccountInput): Promise<{ ok: boolean; error?: string }> {
+  }: CreateAccountInput): Promise<CreateAccountOutput> {
     try {
+      // check an exisiting user
       const existingUser = await this.users.findOne({ email });
       if (existingUser) {
         return {
@@ -32,9 +50,11 @@ export class UsersService {
           error: 'There is an user with that email already.',
         };
       }
+      // create an user with input arguments
       const user = await this.users.save(
         this.users.create({ email, password, role }),
       );
+      // create a verification with this new user
       await this.verifications.save(
         this.verifications.create({
           user,
@@ -46,11 +66,9 @@ export class UsersService {
     }
   }
 
-  async login({
-    email,
-    password,
-  }: LoginInput): Promise<{ ok: boolean; error?: string; token?: string }> {
+  async login({ email, password }: LoginInput): Promise<LoginOutput> {
     try {
+      // find an user
       const user = await this.users.findOne(
         { email },
         { select: ['id', 'password'] },
@@ -61,13 +79,15 @@ export class UsersService {
           error: 'User not found.',
         };
       }
-      const isCorrect = await user.checkPassword(password);
-      if (!isCorrect) {
+      // check password
+      const checkPassword = await user.checkPassword(password);
+      if (!checkPassword) {
         return {
           ok: false,
           error: 'Wrong password.',
         };
       }
+      // verify a token
       const token = this.jwtService.sign(user.id);
       return {
         ok: true,
@@ -78,36 +98,44 @@ export class UsersService {
     }
   }
 
-  async findById(id: number): Promise<User> {
-    return this.users.findOne({ id });
-  }
-
   async editProfile(
     userId: number,
     { email, password }: EditProfileInput,
-  ): Promise<User> {
-    const user = await this.users.findOne(userId);
-    if (email) {
-      user.email = email;
-      user.verified = false;
-      await this.verifications.save(this.verifications.create(user));
+  ): Promise<EditProfileOutput> {
+    try {
+      // find an user
+      const user = await this.users.findOne(userId);
+      // if email is changed, user.verified must change to false
+      if (email) {
+        user.email = email;
+        user.verified = false;
+        await this.verifications.save(this.verifications.create(user));
+      }
+      if (password) {
+        user.password = password;
+      }
+      await this.users.save(user);
+      return { ok: true };
+    } catch (error) {
+      return { ok: false, error };
     }
-    if (password) user.password = password;
-    return this.users.save(user);
   }
 
-  async verifyEmail(code: string): Promise<boolean> {
-    const verification = await this.verifications.findOne(
-      { code },
-      { relations: ['user'] },
-    );
-    if (verification) {
-      verification.user.verified = true;
-      console.log(verification);
-      await this.users.save(verification.user);
-      return true;
-    } else {
-      return false;
+  async verifyEmail(code: string): Promise<VerifyEmailOutput> {
+    try {
+      // find a verification with the code, and user property must be expanded
+      const verification = await this.verifications.findOne(
+        { code },
+        { relations: ['user'] },
+      );
+      if (verification) {
+        verification.user.verified = true;
+        await this.users.save(verification.user);
+        return { ok: true };
+      }
+      throw new Error('Verification not found.');
+    } catch (error) {
+      return { ok: false, error };
     }
   }
 }
