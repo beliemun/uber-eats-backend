@@ -20,6 +20,7 @@ const auth_module_1 = require("./auth/auth.module");
 const verification_entity_1 = require("./users/entities/verification.entity");
 const restaurants_module_1 = require("./restaurants/restaurants.module");
 const restaurant_entity_1 = require("./restaurants/entities/restaurant.entity");
+const mail_module_1 = require("./mail/mail.module");
 let AppModule = class AppModule {
     configure(consumer) {
         consumer.apply(jwt_middleware_1.JwtMiddleware).forRoutes({
@@ -31,6 +32,7 @@ let AppModule = class AppModule {
 AppModule = __decorate([
     (0, common_1.Module)({
         imports: [
+            auth_module_1.AuthModule,
             config_1.ConfigModule.forRoot({
                 isGlobal: true,
                 envFilePath: process.env.NODE_ENV === 'dev' ? '.env.dev' : '.env.test',
@@ -43,6 +45,9 @@ AppModule = __decorate([
                     DB_PASSSWORD: Joi.string().required(),
                     DB_NAME: Joi.string().required(),
                     TOKEN_PRIVATE_KEY: Joi.string().required(),
+                    MAILGUN_API_KEY: Joi.string().required(),
+                    MAILGUN_DOMAIN_NAME: Joi.string().required(),
+                    MAILGUN_FROM_EMAIL: Joi.string().required(),
                 }),
             }),
             typeorm_1.TypeOrmModule.forRoot({
@@ -62,10 +67,14 @@ AppModule = __decorate([
                     user: req['user'],
                 }),
             }),
-            jwt_module_1.JwtModule.forRoot({ privateKey: process.env.TOKEN_PRIVATE_KEY }),
-            users_module_1.UsersModule,
             restaurants_module_1.RestaurantsModule,
-            auth_module_1.AuthModule,
+            jwt_module_1.JwtModule.forRoot({ privateKey: process.env.TOKEN_PRIVATE_KEY }),
+            mail_module_1.MailModule.forRoot({
+                apiKey: process.env.MAILGUN_API_KEY,
+                domain: process.env.MAILGUN_DOMAIN_NAME,
+                fromEmail: process.env.MAILGUN_FROM_EMAIL,
+            }),
+            users_module_1.UsersModule,
         ],
         controllers: [],
         providers: [],

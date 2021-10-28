@@ -16,9 +16,11 @@ import { AuthModule } from './auth/auth.module';
 import { Verification } from './users/entities/verification.entity';
 import { RestaurantsModule } from './restaurants/restaurants.module';
 import { Restaurant } from './restaurants/entities/restaurant.entity';
+import { MailModule } from './mail/mail.module';
 
 @Module({
   imports: [
+    AuthModule,
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: process.env.NODE_ENV === 'dev' ? '.env.dev' : '.env.test',
@@ -31,6 +33,9 @@ import { Restaurant } from './restaurants/entities/restaurant.entity';
         DB_PASSSWORD: Joi.string().required(),
         DB_NAME: Joi.string().required(),
         TOKEN_PRIVATE_KEY: Joi.string().required(),
+        MAILGUN_API_KEY: Joi.string().required(),
+        MAILGUN_DOMAIN_NAME: Joi.string().required(),
+        MAILGUN_FROM_EMAIL: Joi.string().required(),
       }),
     }),
     TypeOrmModule.forRoot({
@@ -50,10 +55,14 @@ import { Restaurant } from './restaurants/entities/restaurant.entity';
         user: req['user'],
       }),
     }),
-    JwtModule.forRoot({ privateKey: process.env.TOKEN_PRIVATE_KEY }),
-    UsersModule,
     RestaurantsModule,
-    AuthModule,
+    JwtModule.forRoot({ privateKey: process.env.TOKEN_PRIVATE_KEY }),
+    MailModule.forRoot({
+      apiKey: process.env.MAILGUN_API_KEY,
+      domain: process.env.MAILGUN_DOMAIN_NAME,
+      fromEmail: process.env.MAILGUN_FROM_EMAIL,
+    }),
+    UsersModule,
   ],
   controllers: [],
   providers: [],
