@@ -1,14 +1,12 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import * as jwt from 'jsonwebtoken';
 import {
   CreateAccountInput,
   CreateAccountOutput,
 } from './dtos/create-account.dto';
 import { LoginInput, LoginOutput } from './dtos/login.dto';
 import { User } from './entities/user.entity';
-import { ConfigService } from '@nestjs/config';
 import { JwtService } from 'src/jwt/jwt.service';
 import { EditProfileInput, EditProfileOutput } from './dtos/edit-profile.dto';
 import { Verification } from './entities/verification.entity';
@@ -25,18 +23,6 @@ export class UsersService {
     private readonly jwtService: JwtService,
     private readonly mailService: MailService,
   ) {}
-
-  async findById(id: number): Promise<UserProfileOutput> {
-    try {
-      const user = await this.users.findOne({ id });
-      if (user) {
-        return { ok: true, user };
-      }
-      throw new Error('User not found.');
-    } catch (error) {
-      return { ok: false, error };
-    }
-  }
 
   async createAccount({
     email,
@@ -127,6 +113,18 @@ export class UsersService {
       }
       await this.users.save(user);
       return { ok: true };
+    } catch (error) {
+      return { ok: false, error };
+    }
+  }
+
+  async findById(id: number): Promise<UserProfileOutput> {
+    try {
+      const user = await this.users.findOne({ id });
+      if (user) {
+        return { ok: true, user };
+      }
+      throw new Error('User not found.');
     } catch (error) {
       return { ok: false, error };
     }
