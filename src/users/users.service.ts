@@ -88,6 +88,15 @@ export class UsersService {
     }
   }
 
+  async findById(id: number): Promise<UserProfileOutput> {
+    try {
+      const user = await this.users.findOneOrFail({ id });
+      return { ok: true, user };
+    } catch (error) {
+      return { ok: false, error: 'User not found.' };
+    }
+  }
+
   async editProfile(
     userId: number,
     { email, password }: EditProfileInput,
@@ -113,18 +122,6 @@ export class UsersService {
       }
       await this.users.save(user);
       return { ok: true };
-    } catch (error) {
-      return { ok: false, error };
-    }
-  }
-
-  async findById(id: number): Promise<UserProfileOutput> {
-    try {
-      const user = await this.users.findOne({ id });
-      if (user) {
-        return { ok: true, user };
-      }
-      throw new Error('User not found.');
     } catch (error) {
       return { ok: false, error };
     }
