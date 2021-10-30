@@ -84,7 +84,7 @@ export class UsersService {
         token,
       };
     } catch (error) {
-      return { ok: false, error };
+      return { ok: false, error: 'Can not log user in.' };
     }
   }
 
@@ -105,7 +105,7 @@ export class UsersService {
       // find an user
       const user = await this.users.findOne(userId);
       if (!user) {
-        throw new Error('User not found.');
+        return { ok: false, error: 'User not found.' };
       }
       // if email is changed, user.verified must change to false
       if (email) {
@@ -123,7 +123,7 @@ export class UsersService {
       await this.users.save(user);
       return { ok: true };
     } catch (error) {
-      return { ok: false, error };
+      return { ok: false, error: 'Could not update profile.' };
     }
   }
 
@@ -140,9 +140,9 @@ export class UsersService {
         await this.verifications.delete(verification.id);
         return { ok: true };
       }
-      throw new Error('Verification not found.');
+      return { ok: false, error: 'Verification not found.' };
     } catch (error) {
-      return { ok: false, error };
+      return { ok: false, error: 'Could not verify the email.' };
     }
   }
 }
