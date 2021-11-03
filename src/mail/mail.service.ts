@@ -10,12 +10,12 @@ export class MailService {
     @Inject(CONFIG_OPTIONS) private readonly options: MailModuleOptions,
   ) {}
 
-  private async sendEmail(
+  async sendEmail(
     subject: string,
     to: string,
     template: string,
     emailVars: EmailVar[],
-  ) {
+  ): Promise<boolean> {
     const form = new FormData();
     form.append(
       'from',
@@ -27,19 +27,22 @@ export class MailService {
     emailVars.forEach((e) => form.append(`v:${e.key}`, e.value));
 
     try {
-      await got(`https://api.mailgun.net/v3/${this.options.domain}/messages`, {
-        headers: {
-          // Buffer를 이용해서 base64 형식으로 변경하면 'XBpOjgxZWY1NzUzYj..' 형식으로 나옴
-          // Header의 형태를 갖추기 위해 이렇게 만들어줘야 함
-          Authorization: `Basic ${Buffer.from(
-            `api:${this.options.apiKey}`,
-          ).toString('base64')}`,
+      await got.post(
+        `https://api.mailgun.net/v3/${this.options.domain}/messages`,
+        {
+          headers: {
+            // Buffer를 이용해서 base64 형식으로 변경하면 'XBpOjgxZWY1NzUzYj..' 형식으로 나옴
+            // Header의 형태를 갖추기 위해 이렇게 만들어줘야 함
+            Authorization: `Basic ${Buffer.from(
+              `api:${this.options.apiKey}`,
+            ).toString('base64')}`,
+          },
+          body: form,
         },
-        method: 'POST',
-        body: form,
-      });
+      );
+      return true;
     } catch (erorr) {
-      console.log(erorr);
+      return false;
     }
   }
 

@@ -14,8 +14,6 @@ import { JwtModule } from './jwt/jwt.module';
 import { JwtMiddleware } from './jwt/jwt.middleware';
 import { AuthModule } from './auth/auth.module';
 import { Verification } from './users/entities/verification.entity';
-import { RestaurantsModule } from './restaurants/restaurants.module';
-import { Restaurant } from './restaurants/entities/restaurant.entity';
 import { MailModule } from './mail/mail.module';
 
 @Module({
@@ -47,7 +45,7 @@ import { MailModule } from './mail/mail.module';
       database: process.env.DB_NAME,
       synchronize: process.env.NODE_ENV !== 'production',
       logging: process.env.NODE_ENV !== 'production',
-      entities: [User, Verification, Restaurant],
+      entities: [User, Verification],
     }),
     GraphQLModule.forRoot({
       autoSchemaFile: true,
@@ -55,7 +53,6 @@ import { MailModule } from './mail/mail.module';
         user: req['user'],
       }),
     }),
-    RestaurantsModule,
     JwtModule.forRoot({ privateKey: process.env.TOKEN_PRIVATE_KEY }),
     MailModule.forRoot({
       apiKey: process.env.MAILGUN_API_KEY,
