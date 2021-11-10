@@ -16,7 +16,8 @@ import { AuthModule } from './auth/auth.module';
 import { Verification } from './users/entities/verification.entity';
 import { MailModule } from './mail/mail.module';
 import { Restaurant } from './restaurants/entities/restaurant.entity';
-import { Categoty } from './restaurants/entities/caterogy.entity';
+import { Category } from './restaurants/entities/caterogy.entity';
+import { RestaurantsModule } from './restaurants/restaurants.module';
 
 @Module({
   imports: [
@@ -49,7 +50,7 @@ import { Categoty } from './restaurants/entities/caterogy.entity';
       logging:
         process.env.NODE_ENV !== 'production' &&
         process.env.NODE_ENV !== 'test',
-      entities: [User, Verification, Restaurant, Categoty],
+      entities: [User, Verification, Restaurant, Category],
     }),
     GraphQLModule.forRoot({
       autoSchemaFile: true,
@@ -64,6 +65,7 @@ import { Categoty } from './restaurants/entities/caterogy.entity';
       fromEmail: process.env.MAILGUN_FROM_EMAIL,
     }),
     UsersModule,
+    RestaurantsModule,
   ],
   controllers: [],
   providers: [],

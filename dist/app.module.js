@@ -21,6 +21,7 @@ const verification_entity_1 = require("./users/entities/verification.entity");
 const mail_module_1 = require("./mail/mail.module");
 const restaurant_entity_1 = require("./restaurants/entities/restaurant.entity");
 const caterogy_entity_1 = require("./restaurants/entities/caterogy.entity");
+const restaurants_module_1 = require("./restaurants/restaurants.module");
 let AppModule = class AppModule {
     configure(consumer) {
         consumer.apply(jwt_middleware_1.JwtMiddleware).forRoutes({
@@ -60,7 +61,7 @@ AppModule = __decorate([
                 synchronize: process.env.NODE_ENV !== 'production',
                 logging: process.env.NODE_ENV !== 'production' &&
                     process.env.NODE_ENV !== 'test',
-                entities: [user_entity_1.User, verification_entity_1.Verification, restaurant_entity_1.Restaurant, caterogy_entity_1.Categoty],
+                entities: [user_entity_1.User, verification_entity_1.Verification, restaurant_entity_1.Restaurant, caterogy_entity_1.Category],
             }),
             graphql_1.GraphQLModule.forRoot({
                 autoSchemaFile: true,
@@ -75,6 +76,7 @@ AppModule = __decorate([
                 fromEmail: process.env.MAILGUN_FROM_EMAIL,
             }),
             users_module_1.UsersModule,
+            restaurants_module_1.RestaurantsModule,
         ],
         controllers: [],
         providers: [],
