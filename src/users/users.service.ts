@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import {
@@ -13,6 +13,7 @@ import { Verification } from './entities/verification.entity';
 import { VerifyEmailOutput } from './dtos/verify-email.dto';
 import { UserProfileOutput } from './dtos/user-profile.tdo';
 import { MailService } from 'src/mail/mail.service';
+import { compareSync } from 'bcrypt';
 
 @Injectable()
 export class UsersService {
@@ -111,8 +112,9 @@ export class UsersService {
       if (email) {
         user.email = email;
         user.verified = false;
+        await this.verifications.delete({ user: { id: user.id } });
         const verification = await this.verifications.save(
-          this.verifications.create(user),
+          this.verifications.create({ user }),
         );
         // send a verification email
         this.mailService.sendVerificationEmail(user.email, verification.code);
