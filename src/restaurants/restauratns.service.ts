@@ -7,6 +7,10 @@ import {
   CreateRestaurantOutput,
 } from './dtos/create-restaurant.dto';
 import {
+  DeleteRestaurantInput,
+  DeleteRestaurantOutput,
+} from './dtos/delete-restaurant.dto';
+import {
   EditRestaurantInput,
   EditRestaurantOutput,
 } from './dtos/edit-restaurant.dto';
@@ -24,17 +28,19 @@ export class RestaurantsService {
   ) {}
 
   async createRestaurant(
-    owner: User,
+    authUser: User,
     createRestaurantInput: CreateRestaurantInput,
   ): Promise<CreateRestaurantOutput> {
     try {
       const newRestaurant = this.restaurants.create(createRestaurantInput);
-      newRestaurant.owner = owner;
-
+      console.log(newRestaurant);
+      newRestaurant.owner = authUser;
+      console.log(authUser);
       const category = await this.categories.getOrCreate(
         createRestaurantInput.categoryName,
       );
       newRestaurant.category = category;
+      console.log(newRestaurant);
       await this.restaurants.save(newRestaurant);
       return { ok: true };
     } catch (error) {
@@ -68,15 +74,13 @@ export class RestaurantsService {
           editRestaurantInput.categoryName,
         );
       }
-      await this.restaurants.save(
-        this.restaurants.create([
-          {
-            id: editRestaurantInput.restaurantId,
-            ...editRestaurantInput,
-            ...(category && { category }),
-          },
-        ]),
-      );
+      // save를 할 때 id를 보내지 않는다는 것은 새로운 entity를 생성한다는 뜻.
+      // save할 때 내부 배열을 삭제함. 왜 있어야 하는지 이유를 모르겠음. 강의 #10.10 하는 중.
+      await this.restaurants.save({
+        id: editRestaurantInput.restaurantId,
+        ...editRestaurantInput,
+        ...(category && { category }),
+      });
       return {
         ok: true,
       };
@@ -84,6 +88,36 @@ export class RestaurantsService {
       return {
         ok: false,
         error: 'Could not edit Restaurant.',
+      };
+    }
+  }
+
+  async deleteRestaurant(
+    authUser: User,
+    { restaurantId }: DeleteRestaurantInput,
+  ): Promise<DeleteRestaurantOutput> {
+    try {
+      const restaurant = await this.restaurants.findOne(restaurantId);
+      if (!restaurant) {
+        return {
+          ok: false,
+          error: 'Restaurant not found.',
+        };
+      }
+      if (authUser.id !== restaurant.ownerId) {
+        return {
+          ok: false,
+          error: "You can't edit a restaurant that you don't own.",
+        };
+      }
+      await this.restaurants.delete(restaurantId);
+      return {
+        ok: true,
+      };
+    } catch (error) {
+      return {
+        ok: false,
+        error: 'Could not delete a restaurant.',
       };
     }
   }
