@@ -9,7 +9,7 @@ import { Restaurant } from '../entities/restaurant.entity';
 @InputType()
 export class SearchRestaurantInput extends PaginationInput {
   @Field(() => String)
-  query: string;
+  term: string;
 }
 
 @ObjectType()
