@@ -29,12 +29,19 @@ import {
   SearchRestaurantInput,
   SearchRestaurantOutput,
 } from './dtos/search-restaurant.dto';
+import { CreateDishInput } from './dtos/create-dish.dto';
+import { Dish } from './entities/dish.entity';
+import { EditDishInput } from './dtos/edit-dish.dto';
+import { DeleteDishInput } from './dtos/delete-dish.dto';
+import { chownSync } from 'fs';
 
 @Injectable()
 export class RestaurantsService {
   constructor(
     @InjectRepository(Restaurant)
     private readonly restaurants: Repository<Restaurant>,
+    @InjectRepository(Dish)
+    private readonly dishes: Repository<Dish>,
     // CustomRepository 참고 강의 - #10.9
     private readonly categories: CategoryRepository,
   ) {}
@@ -208,11 +215,11 @@ export class RestaurantsService {
     }
   }
 
-  async findRestaurantById(restaurantInput: RestaurantInput) {
+  async findRestaurantById({ restaurantId }: RestaurantInput) {
     try {
-      const restaurant = await this.restaurants.findOne(
-        restaurantInput.restaurantId,
-      );
+      const restaurant = await this.restaurants.findOne(restaurantId, {
+        relations: ['menu'],
+      });
       if (!restaurant) {
         return {
           ok: false,
@@ -236,7 +243,6 @@ export class RestaurantsService {
     term,
   }: SearchRestaurantInput): Promise<SearchRestaurantOutput> {
     try {
-      console.log(page, term);
       const [restaurants, totalResults] = await this.restaurants.findAndCount({
         where: {
           name: ILike(`%${term}%`),
@@ -244,7 +250,6 @@ export class RestaurantsService {
         skip: (page - 1) * 5,
         take: 5,
       });
-      console.log(restaurants, totalResults);
       return {
         ok: true,
         restaurants,
@@ -255,6 +260,99 @@ export class RestaurantsService {
       return {
         ok: false,
         error: 'Could not search for restaurants.',
+      };
+    }
+  }
+
+  async createDish(authUser: User, createDishInput: CreateDishInput) {
+    try {
+      const restaurant = await this.restaurants.findOne(
+        createDishInput.restaurantId,
+      );
+      if (!restaurant) {
+        return {
+          ok: false,
+          error: 'Resraurant not found.',
+        };
+      }
+      if (authUser.id !== restaurant.ownerId) {
+        return {
+          ok: false,
+          error: 'User is not this restaurant`s owner.',
+        };
+      }
+      const dish = await this.dishes.save(
+        this.dishes.create({ ...createDishInput, restaurant }),
+      );
+      return {
+        ok: true,
+      };
+    } catch {
+      return {
+        ok: false,
+        error: 'Could not create a Dish.',
+      };
+    }
+  }
+
+  async editDish(authUser: User, editDishInput: EditDishInput) {
+    try {
+      const dish = await this.dishes.findOne(editDishInput.dishId, {
+        relations: ['restaurant'],
+      });
+      if (!dish) {
+        return {
+          ok: true,
+          error: 'Dish not found.',
+        };
+      }
+      if (authUser.id !== dish.restaurant.ownerId) {
+        return {
+          ok: false,
+          error: 'You are not this restaurant`s owner.',
+        };
+      }
+      await this.dishes.save({
+        id: editDishInput.dishId,
+        ...editDishInput,
+      });
+      return {
+        ok: true,
+      };
+    } catch {
+      return {
+        ok: false,
+        error: 'Could not edit a Dish',
+      };
+    }
+  }
+
+  async deleteDish(authUser: User, { dishId }: DeleteDishInput) {
+    try {
+      // dish가 restaurant를 가지고 있지만 relations로 로드해야 정보를 읽을 수 있다.
+      const dish = await this.dishes.findOne(dishId, {
+        relations: ['restaurant'],
+      });
+      if (!dish) {
+        return {
+          ok: false,
+          error: 'Dish not found.',
+        };
+      }
+      if (authUser.id !== dish.restaurant.ownerId) {
+        return {
+          ok: false,
+          error: 'You are not this restaurant`s owner.',
+        };
+      }
+      await this.dishes.delete(dishId);
+      return {
+        ok: true,
+      };
+    } catch {
+      return {
+        ok: false,
+        error: 'Could not delete a dish',
       };
     }
   }

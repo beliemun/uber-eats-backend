@@ -7,19 +7,23 @@ import {
   ResolveField,
 } from '@nestjs/graphql';
 import { Resolver } from '@nestjs/graphql';
+import { create } from 'domain';
 import { AuthUser } from 'src/auth/auth-user.decorator';
 import { Role } from 'src/auth/role.decorator';
 import { Restaurant } from 'src/restaurants/entities/restaurant.entity';
 import { User } from 'src/users/entities/user.entity';
 import { CategoryInput, CategoryOutput } from './dtos/category.dto';
+import { CreateDishInput, CreateDishOutput } from './dtos/create-dish.dto';
 import {
   CreateRestaurantInput,
   CreateRestaurantOutput,
 } from './dtos/create-restaurant.dto';
+import { DeleteDishInput, DeleteDishOutput } from './dtos/delete-dish.dto';
 import {
   DeleteRestaurantInput,
   DeleteRestaurantOutput,
 } from './dtos/delete-restaurant.dto';
+import { EditDishInput, EditDishOutput } from './dtos/edit-dish.dto';
 import {
   EditRestaurantInput,
   EditRestaurantOutput,
@@ -35,6 +39,7 @@ import {
   SeeRestaurantsOutput,
 } from './dtos/see-restaurants.dto';
 import { Category } from './entities/caterogy.entity';
+import { Dish } from './entities/dish.entity';
 import { RestaurantsService } from './restaurants.service';
 
 @Resolver(() => Restaurant)
@@ -121,5 +126,37 @@ export class CategoriesResolver {
   @ResolveField(() => Int)
   restaurantCount(@Parent() category: Category): Promise<number> {
     return this.restaurantsService.countRestaurants(category);
+  }
+}
+
+@Resolver(() => Dish)
+export class DishResolver {
+  constructor(private readonly restaurantsService: RestaurantsService) {}
+
+  @Mutation(() => CreateDishOutput)
+  @Role('Owner')
+  createDish(
+    @AuthUser() authUser: User,
+    @Args('input') createDishInput: CreateDishInput,
+  ): Promise<CreateDishOutput> {
+    return this.restaurantsService.createDish(authUser, createDishInput);
+  }
+
+  @Mutation(() => EditDishOutput)
+  @Role('Owner')
+  editDish(
+    @AuthUser() authUser: User,
+    @Args('input') editDishInput: EditDishInput,
+  ): Promise<EditDishOutput> {
+    return this.restaurantsService.editDish(authUser, editDishInput);
+  }
+
+  @Mutation(() => DeleteDishOutput)
+  @Role('Owner')
+  deleteDish(
+    @AuthUser() authUser: User,
+    @Args('input') deleteDishInput: DeleteDishInput,
+  ): Promise<DeleteDishOutput> {
+    return this.restaurantsService.deleteDish(authUser, deleteDishInput);
   }
 }
