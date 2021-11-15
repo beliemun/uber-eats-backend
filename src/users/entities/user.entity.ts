@@ -10,6 +10,7 @@ import * as bcrypt from 'bcrypt';
 import { InternalServerErrorException } from '@nestjs/common';
 import { IsBoolean, IsEmail, IsEnum, IsString } from 'class-validator';
 import { Restaurant } from 'src/restaurants/entities/restaurant.entity';
+import { Order } from 'src/orders/entites/order.entity';
 
 export enum UserRole {
   Client = 'Client',
@@ -24,29 +25,37 @@ registerEnumType(UserRole, { name: 'UserRole' });
 @Entity()
 export class User extends CoreEntity {
   @Column({ unique: true })
-  @Field((type) => String)
+  @Field(() => String)
   @IsEmail()
   email: string;
 
   // select:false => verifyEmail()을 호출할 때, @BeforeUpdate()가 호출되는 것을 막기 위해 사용.
   @Column({ select: false })
-  @Field((type) => String)
+  @Field(() => String)
   @IsString()
   password: string;
 
   @Column({ type: 'enum', enum: UserRole })
-  @Field((type) => UserRole)
+  @Field(() => UserRole)
   @IsEnum(UserRole)
   role: UserRole;
 
   @Column({ default: false })
-  @Field((type) => Boolean)
+  @Field(() => Boolean)
   @IsBoolean()
   verified: boolean;
 
-  @Field((type) => [Restaurant])
-  @OneToMany((type) => Restaurant, (restaurant) => restaurant.owner)
+  @Field(() => [Restaurant])
+  @OneToMany(() => Restaurant, (restaurant) => restaurant.owner)
   restaurants: Restaurant[];
+
+  @Field(() => [Order])
+  @OneToMany(() => Order, (order) => order.customer)
+  orders: Order[];
+
+  @Field(() => [Order])
+  @OneToMany(() => Order, (order) => order.driver)
+  rides: Order[];
 
   @BeforeInsert()
   @BeforeUpdate()
