@@ -108,7 +108,6 @@ export class OrdersService {
     { status }: GetOrdersInput,
   ): Promise<GetOrdersOutput> {
     try {
-      console.log(user.role);
       let orders: Order[] = [];
       switch (user.role) {
         case UserRole.Client:
@@ -143,7 +142,6 @@ export class OrdersService {
           }
           break;
       }
-      console.log(orders);
       return {
         ok: true,
         orders: orders,
@@ -218,6 +216,7 @@ export class OrdersService {
           error: 'Order not found.',
         };
       }
+      // 해당 주문이 자신과 관련이 있어서 수정 권한이 있는지 확인한다.
       if (!this.canSeeOrder(user, order)) {
         return {
           ok: false,
@@ -227,12 +226,15 @@ export class OrdersService {
 
       let ok = true;
       if (user.role === UserRole.Client) {
+        // Client일 경우 주문을 수정할 수 없다.
         ok = false;
       } else if (user.role === UserRole.Owner) {
+        // Owner의 경우 변경을 시도하려는 주문 상태가 Cooked와 Cooking인지 확인한다.
         if (status !== OrderStatus.Cooking && status !== OrderStatus.Cooked) {
           ok = false;
         }
       } else if (user.role === UserRole.Delivery) {
+        // Driver의 경우 변경을 시도하려는 주문 상태가 PickedUp인지 Delivery인지 확인한다.
         if (
           status !== OrderStatus.PickedUp &&
           status !== OrderStatus.Delivered
@@ -240,19 +242,18 @@ export class OrdersService {
           ok = false;
         }
       }
-      await this.orders.save([
-        {
-          id: orderId,
-          status,
-        },
-      ]);
       if (!ok) {
         return {
           ok,
           error: 'You don`t have a permission to edit the order',
         };
       }
-
+      await this.orders.save([
+        {
+          id: orderId,
+          status,
+        },
+      ]);
       return {
         ok: true,
       };

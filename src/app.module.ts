@@ -65,10 +65,14 @@ import { OrderItem } from './orders/entites/order-item.entity';
       ],
     }),
     GraphQLModule.forRoot({
+      installSubscriptionHandlers: true,
       autoSchemaFile: true,
-      context: ({ req }) => ({
-        user: req['user'],
-      }),
+      context: ({ req, connection }) => {
+        const TOKEN_KEY = 'token';
+        return req
+          ? { token: req.headers[TOKEN_KEY] }
+          : { token: connection.context[TOKEN_KEY] };
+      },
     }),
     JwtModule.forRoot({ privateKey: process.env.TOKEN_PRIVATE_KEY }),
     MailModule.forRoot({
@@ -84,11 +88,12 @@ import { OrderItem } from './orders/entites/order-item.entity';
   controllers: [],
   providers: [],
 })
-export class AppModule implements NestModule {
-  configure(consumer: MiddlewareConsumer) {
-    consumer.apply(JwtMiddleware).forRoutes({
-      path: '/graphql',
-      method: RequestMethod.POST,
-    });
-  }
-}
+export class AppModule {}
+// export class AppModule implements NestModule {
+//   configure(consumer: MiddlewareConsumer) {
+//     consumer.apply(JwtMiddleware).forRoutes({
+//       path: '/graphql',
+//       method: RequestMethod.POST,
+//     });
+//   }
+// }
