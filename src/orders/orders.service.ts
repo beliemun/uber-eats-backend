@@ -7,6 +7,7 @@ import { Restaurant } from 'src/restaurants/entities/restaurant.entity';
 import { User, UserRole } from 'src/users/entities/user.entity';
 import { Repository } from 'typeorm';
 import { CreateOrderInput } from './dtos/create-order.dto';
+import { EditOrderInput, EditOrderOutput } from './dtos/edit-order.dto';
 import { GetOrderInput, GetOrderOutput } from './dtos/get-order.dto';
 import { GetOrdersInput, GetOrdersOutput } from './dtos/get-orders.dto';
 import { OrderItem } from './entites/order-item.entity';
@@ -155,6 +156,21 @@ export class OrdersService {
     }
   }
 
+  canSeeOrder(user: User, order: Order): boolean {
+    let ok = true;
+    if (order.customerId !== user.id && user.role === UserRole.Client) {
+      ok = false;
+    } else if (order.driverId !== user.id && user.role === UserRole.Delivery) {
+      ok = false;
+    } else if (
+      order.restaurant.ownerId !== user.id &&
+      user.role === UserRole.Owner
+    ) {
+      ok = false;
+    }
+    return ok;
+  }
+
   async getOrder(
     user: User,
     { id: orderId }: GetOrderInput,
@@ -169,23 +185,10 @@ export class OrdersService {
           error: 'Order not found.',
         };
       }
-      let ok = true;
-      if (order.customerId !== user.id && user.role === UserRole.Client) {
-        ok = false;
-      } else if (
-        order.driverId !== user.id &&
-        user.role === UserRole.Delivery
-      ) {
-        ok = false;
-      } else if (
-        order.restaurant.ownerId !== user.id &&
-        user.role === UserRole.Owner
-      ) {
-        ok = false;
-      }
-      if (!ok) {
+
+      if (!this.canSeeOrder(user, order)) {
         return {
-          ok,
+          ok: false,
           error: 'You don`t have a permission to see the order',
         };
       }
@@ -197,6 +200,66 @@ export class OrdersService {
       return {
         ok: false,
         error: 'Could not get order.',
+      };
+    }
+  }
+
+  async editOrder(
+    user: User,
+    { id: orderId, status }: EditOrderInput,
+  ): Promise<EditOrderOutput> {
+    try {
+      const order = await this.orders.findOne(orderId, {
+        relations: ['restaurant'],
+      });
+      if (!order) {
+        return {
+          ok: false,
+          error: 'Order not found.',
+        };
+      }
+      if (!this.canSeeOrder(user, order)) {
+        return {
+          ok: false,
+          error: 'You don`t have a permission to edit the order',
+        };
+      }
+
+      let ok = true;
+      if (user.role === UserRole.Client) {
+        ok = false;
+      } else if (user.role === UserRole.Owner) {
+        if (status !== OrderStatus.Cooking && status !== OrderStatus.Cooked) {
+          ok = false;
+        }
+      } else if (user.role === UserRole.Delivery) {
+        if (
+          status !== OrderStatus.PickedUp &&
+          status !== OrderStatus.Delivered
+        ) {
+          ok = false;
+        }
+      }
+      await this.orders.save([
+        {
+          id: orderId,
+          status,
+        },
+      ]);
+      if (!ok) {
+        return {
+          ok,
+          error: 'You don`t have a permission to edit the order',
+        };
+      }
+
+      return {
+        ok: true,
+      };
+    } catch {
+      return {
+        ok: false,
+        error: 'Could not edit a order.',
       };
     }
   }
