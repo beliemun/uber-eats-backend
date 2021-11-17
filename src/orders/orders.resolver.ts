@@ -10,7 +10,7 @@ import { Order } from './entites/order.entity';
 import { OrdersService } from './orders.service';
 import { PubSub } from 'graphql-subscriptions';
 import { Inject } from '@nestjs/common';
-import { PUB_SUB } from 'src/common/common.constants';
+import { NEW_PENDING_ORDER, PUB_SUB } from 'src/common/common.constants';
 
 @Resolver(() => Order)
 export class OrderResolver {
@@ -55,24 +55,19 @@ export class OrderResolver {
     return this.ordersService.editOrder(user, editOrderInput);
   }
 
-  @Mutation(() => Boolean)
-  ready(@Args('id') id: number) {
-    this.pubSub.publish('delivery', { orderSubscription: id });
-    return true;
-  }
-
-  @Subscription(() => String, {
+  @Subscription(() => Order, {
+    // filter는 반드시 true/false를 리턴해야 한다.
     filter: (payload, variables, context) => {
-      // variables는 subscription의 조건, payload는 호출자의 정보
-      if (payload.orderSubscription === variables.id) {
+      // payload.pendingOrders.ownerId: 주문한 레스토랑의 소유자
+      // context.user.id: 현재 로그인된 유저
+      if (payload.pendingOrders.ownerId === context.user.id) {
         return true;
-      } else {
-        return false;
       }
     },
+    resolve: (payload) => payload.pendingOrders.order,
   })
-  @Role('Any')
-  orderSubscription(@Args('id') id: number) {
-    return this.pubSub.asyncIterator('delivery');
+  @Role('Owner')
+  pendingOrders() {
+    return this.pubSub.asyncIterator(NEW_PENDING_ORDER);
   }
 }
