@@ -9,12 +9,15 @@ import { GetOrdersInput, GetOrdersOutput } from './dtos/get-orders.dto';
 import { Order } from './entites/order.entity';
 import { OrdersService } from './orders.service';
 import { PubSub } from 'graphql-subscriptions';
-
-const pubsub = new PubSub();
+import { Inject } from '@nestjs/common';
+import { PUB_SUB } from 'src/common/common.constants';
 
 @Resolver(() => Order)
 export class OrderResolver {
-  constructor(private readonly ordersService: OrdersService) {}
+  constructor(
+    private readonly ordersService: OrdersService,
+    @Inject(PUB_SUB) private readonly pubSub: PubSub,
+  ) {}
 
   @Mutation(() => CreateOrderOutput)
   @Role('Client')
@@ -53,15 +56,23 @@ export class OrderResolver {
   }
 
   @Mutation(() => Boolean)
-  ready() {
-    pubsub.publish('delivery', { orderSubscription: 'It`s ready!' });
+  ready(@Args('id') id: number) {
+    this.pubSub.publish('delivery', { orderSubscription: id });
     return true;
   }
 
-  @Subscription(() => String)
+  @Subscription(() => String, {
+    filter: (payload, variables, context) => {
+      // variables는 subscription의 조건, payload는 호출자의 정보
+      if (payload.orderSubscription === variables.id) {
+        return true;
+      } else {
+        return false;
+      }
+    },
+  })
   @Role('Any')
-  orderSubscription(@AuthUser() user: User) {
-    console.log('user', user);
-    return pubsub.asyncIterator('delivery');
+  orderSubscription(@Args('id') id: number) {
+    return this.pubSub.asyncIterator('delivery');
   }
 }
