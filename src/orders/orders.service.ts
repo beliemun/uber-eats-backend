@@ -1,8 +1,14 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PubSub } from 'graphql-subscriptions';
+import { identity } from 'rxjs';
 import { Role } from 'src/auth/role.decorator';
-import { NEW_PENDING_ORDER, PUB_SUB } from 'src/common/common.constants';
+import {
+  NEW_COOKED_ORDER,
+  NEW_ORDER_UPDATE,
+  NEW_PENDING_ORDER,
+  PUB_SUB,
+} from 'src/common/common.constants';
 import { Dish } from 'src/restaurants/entities/dish.entity';
 import { Restaurant } from 'src/restaurants/entities/restaurant.entity';
 import { User, UserRole } from 'src/users/entities/user.entity';
@@ -213,9 +219,7 @@ export class OrdersService {
     { id: orderId, status }: EditOrderInput,
   ): Promise<EditOrderOutput> {
     try {
-      const order = await this.orders.findOne(orderId, {
-        relations: ['restaurant'],
-      });
+      const order = await this.orders.findOne(orderId);
       if (!order) {
         return {
           ok: false,
@@ -254,12 +258,24 @@ export class OrdersService {
           error: 'You don`t have a permission to edit the order',
         };
       }
-      await this.orders.save([
-        {
-          id: orderId,
-          status,
-        },
-      ]);
+      // save로 리턴을 받는 경우, 현재 가지고 있는 필드와 업데이트 내용만 오브젝트로 받기 때문에
+      // Subscription의 Payload로 전달할 수 없다.
+      await this.orders.save({
+        id: orderId,
+        status,
+      });
+      // 현재 order는 업데이트 전의 값이므로 업데이트된 order형태로 payload에 전달한다.
+      const newOrder = { ...order, status };
+      // 레스토랑 주인이 Cooked로 변경했다면, 배달 기사에게 실시간으로 알린다.
+      if (user.role === UserRole.Owner) {
+        if (status === OrderStatus.Cooked) {
+          this.pubSub.publish(NEW_COOKED_ORDER, {
+            cookedOrder: newOrder,
+          });
+        }
+      }
+      // 주문이 수정되면 모든 관련자에게 알려준다.
+      this.pubSub.publish(NEW_ORDER_UPDATE, { orderUpdates: newOrder });
       return {
         ok: true,
       };
