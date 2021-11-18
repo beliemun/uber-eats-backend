@@ -93,6 +93,7 @@ export class OrdersService {
         );
         orderItems.push(orderItem);
       }
+
       const order = await this.orders.save(
         this.orders.create({
           customer,
