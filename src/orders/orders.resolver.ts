@@ -76,6 +76,7 @@ export class OrderResolver {
   pendingOrders() {
     return this.pubSub.asyncIterator(NEW_PENDING_ORDER);
   }
+
   @Subscription(() => Order)
   @Role('Delivery')
   cookedOrder() {
