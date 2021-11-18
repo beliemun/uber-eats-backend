@@ -321,7 +321,7 @@ export class OrdersService {
     } catch {
       return {
         ok: false,
-        error: 'Could not take the order..',
+        error: 'Could not take the order.',
       };
     }
   }
