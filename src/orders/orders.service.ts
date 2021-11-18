@@ -17,6 +17,7 @@ import { CreateOrderInput } from './dtos/create-order.dto';
 import { EditOrderInput, EditOrderOutput } from './dtos/edit-order.dto';
 import { GetOrderInput, GetOrderOutput } from './dtos/get-order.dto';
 import { GetOrdersInput, GetOrdersOutput } from './dtos/get-orders.dto';
+import { TakeOrderInput, TakeOrderOutput } from './dtos/take-order.dto';
 import { OrderItem } from './entites/order-item.entity';
 import { Order, OrderStatus } from './entites/order.entity';
 
@@ -282,7 +283,44 @@ export class OrdersService {
     } catch {
       return {
         ok: false,
-        error: 'Could not edit a order.',
+        error: 'Could not edit the order.',
+      };
+    }
+  }
+
+  async takeOrder(
+    driver: User,
+    { id }: TakeOrderInput,
+  ): Promise<TakeOrderOutput> {
+    try {
+      const order = await this.orders.findOne(id);
+      if (!order) {
+        return {
+          ok: false,
+          error: 'Order not found.',
+        };
+      }
+      if (order.driver) {
+        return {
+          ok: false,
+          error: 'This order already has a driver.',
+        };
+      }
+      await this.orders.save({
+        id,
+        driver,
+        status: OrderStatus.PickedUp,
+      });
+      this.pubSub.publish(NEW_ORDER_UPDATE, {
+        orderUpdates: { ...order, driver, status: OrderStatus.PickedUp },
+      });
+      return {
+        ok: true,
+      };
+    } catch {
+      return {
+        ok: false,
+        error: 'Could not take the order.',
       };
     }
   }
