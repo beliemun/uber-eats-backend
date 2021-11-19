@@ -1,9 +1,5 @@
-import {
-  MiddlewareConsumer,
-  Module,
-  NestModule,
-  RequestMethod,
-} from '@nestjs/common';
+import { Module } from '@nestjs/common';
+import { ScheduleModule } from '@nestjs/schedule';
 import { ConfigModule } from '@nestjs/config';
 import { GraphQLModule } from '@nestjs/graphql';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -78,6 +74,7 @@ import { Payment } from './payments/entities/payment.entity';
           : { token: connection.context[TOKEN_KEY] };
       },
     }),
+    ScheduleModule.forRoot(),
     JwtModule.forRoot({ privateKey: process.env.TOKEN_PRIVATE_KEY }),
     MailModule.forRoot({
       apiKey: process.env.MAILGUN_API_KEY,

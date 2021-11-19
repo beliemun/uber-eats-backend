@@ -177,6 +177,9 @@ export class RestaurantsService {
         },
         take: 5,
         skip: (page - 1) * 5,
+        order: {
+          isPromoted: 'DESC', // True는 위에서부터 False는 아래서부터 정렬
+        },
       });
       const totalResults = await this.countRestaurants(category);
       return {
@@ -200,6 +203,9 @@ export class RestaurantsService {
       const [restaurants, totalResults] = await this.restaurants.findAndCount({
         skip: (page - 1) * 5,
         take: 5,
+        order: {
+          isPromoted: 'DESC', // True는 위에서부터 False는 아래서부터 정렬
+        },
       });
       return {
         ok: true,
