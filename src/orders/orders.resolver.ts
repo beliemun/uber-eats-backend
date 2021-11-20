@@ -18,9 +18,6 @@ import {
 } from 'src/common/common.constants';
 import { OrderUpdatesInput } from './dtos/order-updates.dto';
 import { TakeOrderInput, TakeOrderOutput } from './dtos/take-order.dto';
-import { ok } from 'assert';
-import { contains } from 'class-validator';
-import { getCustomRepositoryToken } from '@nestjs/typeorm';
 
 @Resolver(() => Order)
 export class OrderResolver {
