@@ -109,7 +109,7 @@ export class UsersService {
         return { ok: false, error: 'User not found.' };
       }
       // if email is changed, user.verified must change to false
-      if (email) {
+      if (email && user.email !== email) {
         user.email = email;
         user.verified = false;
         await this.verifications.delete({ user: { id: user.id } });
