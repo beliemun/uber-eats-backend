@@ -204,7 +204,9 @@ export class RestaurantsService {
         skip: (page - 1) * 5,
         take: 5,
         order: {
-          isPromoted: 'DESC', // True는 위에서부터 False는 아래서부터 정렬
+          // 광고주 레스토랑을 먼저 보여주고, 그다음은 레스토랑 생성 순
+          isPromoted: 'DESC',
+          createdAt: 'ASC',
         },
       });
       return {
