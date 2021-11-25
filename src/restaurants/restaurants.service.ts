@@ -204,9 +204,11 @@ export class RestaurantsService {
         skip: (page - 1) * 5,
         take: 5,
         order: {
-          isPromoted: 'DESC', // True는 위에서부터 False는 아래서부터 정렬
+          isPromoted: 'DESC',
+          createdAt: 'ASC',
         },
       });
+      console.log('restaurants:', restaurants);
       return {
         ok: true,
         results: restaurants,
