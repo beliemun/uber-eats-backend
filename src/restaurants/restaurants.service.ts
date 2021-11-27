@@ -33,7 +33,6 @@ import { CreateDishInput } from './dtos/create-dish.dto';
 import { Dish } from './entities/dish.entity';
 import { EditDishInput } from './dtos/edit-dish.dto';
 import { DeleteDishInput } from './dtos/delete-dish.dto';
-import { chownSync } from 'fs';
 
 @Injectable()
 export class RestaurantsService {
