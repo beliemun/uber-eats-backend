@@ -13,7 +13,6 @@ import { Verification } from './entities/verification.entity';
 import { VerifyEmailOutput } from './dtos/verify-email.dto';
 import { UserProfileOutput } from './dtos/user-profile.tdo';
 import { MailService } from 'src/mail/mail.service';
-import { compareSync } from 'bcrypt';
 
 @Injectable()
 export class UsersService {
