@@ -28,6 +28,7 @@ import {
   EditRestaurantInput,
   EditRestaurantOutput,
 } from './dtos/edit-restaurant.dto';
+import { MyRestaurantOutput } from './dtos/my-restaurant.dto';
 import { RestaurantInput, RestaurantOutput } from './dtos/restaurant.dto';
 import {
   SearchRestaurantInput,
@@ -45,6 +46,12 @@ import { RestaurantsService } from './restaurants.service';
 @Resolver(() => Restaurant)
 export class RestaurantsResolver {
   constructor(private readonly restaurantsService: RestaurantsService) {}
+
+  @Query(() => MyRestaurantOutput)
+  @Role('Owner')
+  myRestaurant(@AuthUser() authUser: User): Promise<MyRestaurantOutput> {
+    return this.restaurantsService.myRestaurant(authUser);
+  }
 
   @Mutation(() => CreateRestaurantOutput)
   @Role('Owner')
