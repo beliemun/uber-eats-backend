@@ -33,7 +33,7 @@ import { CreateDishInput } from './dtos/create-dish.dto';
 import { Dish } from './entities/dish.entity';
 import { EditDishInput } from './dtos/edit-dish.dto';
 import { DeleteDishInput } from './dtos/delete-dish.dto';
-import { MyRestaurantOutput } from './dtos/my-restaurant.dto';
+import { MyRestaurantsOutput } from './dtos/my-restaurants.dto';
 
 @Injectable()
 export class RestaurantsService {
@@ -46,7 +46,7 @@ export class RestaurantsService {
     private readonly categories: CategoryRepository,
   ) {}
 
-  async myRestaurant(authUser: User): Promise<MyRestaurantOutput> {
+  async myRestaurants(authUser: User): Promise<MyRestaurantsOutput> {
     try {
       const restaurants = await this.restaurants.find({ owner: authUser });
       return { ok: true, restaurants };
@@ -67,7 +67,7 @@ export class RestaurantsService {
       );
       newRestaurant.category = category;
       await this.restaurants.save(newRestaurant);
-      return { ok: true };
+      return { ok: true, restaurantId: newRestaurant.id };
     } catch (error) {
       return { ok: false, error };
     }
