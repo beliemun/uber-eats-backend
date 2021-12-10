@@ -34,6 +34,10 @@ import { Dish } from './entities/dish.entity';
 import { EditDishInput } from './dtos/edit-dish.dto';
 import { DeleteDishInput } from './dtos/delete-dish.dto';
 import { MyRestaurantsOutput } from './dtos/my-restaurants.dto';
+import {
+  MyRestaurantInput,
+  MyRestaurantOutput,
+} from './dtos/my-restaurant.dto';
 
 @Injectable()
 export class RestaurantsService {
@@ -50,6 +54,24 @@ export class RestaurantsService {
     try {
       const restaurants = await this.restaurants.find({ owner: authUser });
       return { ok: true, restaurants };
+    } catch (error) {
+      return { ok: false, error };
+    }
+  }
+
+  async myRestaurant(
+    authUser: User,
+    myRestaurantInput: MyRestaurantInput,
+  ): Promise<MyRestaurantOutput> {
+    try {
+      const restaurant = await this.restaurants.findOne(
+        {
+          owner: authUser,
+          id: myRestaurantInput.id,
+        },
+        { relations: ['menu'] },
+      );
+      return { ok: true, restaurant };
     } catch (error) {
       return { ok: false, error };
     }
@@ -299,7 +321,7 @@ export class RestaurantsService {
           error: 'User is not this restaurant`s owner.',
         };
       }
-      const dish = await this.dishes.save(
+      await this.dishes.save(
         this.dishes.create({ ...createDishInput, restaurant }),
       );
       return {
