@@ -69,7 +69,7 @@ export class RestaurantsService {
           owner: authUser,
           id: myRestaurantInput.id,
         },
-        { relations: ['menu'] },
+        { relations: ['menu', 'orders'] },
       );
       return { ok: true, restaurant };
     } catch (error) {
