@@ -31,7 +31,7 @@ export class DishOption {
 export class Dish extends CoreEntity {
   @Field(() => String)
   @Column({ unique: true })
-  @Length(5)
+  @Length(10)
   name: string;
 
   @Field(() => Number)
