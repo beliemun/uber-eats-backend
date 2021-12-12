@@ -8,6 +8,8 @@ import { Column, Entity, ManyToOne } from 'typeorm';
 export class OrderItemOption {
   @Field(() => String)
   name: string;
+  @Field(() => Number, { nullable: true })
+  extra?: number;
   @Field(() => String, { nullable: true })
   choice?: string;
 }
