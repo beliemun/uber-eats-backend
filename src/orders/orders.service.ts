@@ -1,7 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PubSub } from 'graphql-subscriptions';
-import { identity } from 'rxjs';
 import { Role } from 'src/auth/role.decorator';
 import {
   NEW_COOKED_ORDER,
@@ -93,7 +92,6 @@ export class OrdersService {
         );
         orderItems.push(orderItem);
       }
-
       const order = await this.orders.save(
         this.orders.create({
           customer,
@@ -104,7 +102,7 @@ export class OrdersService {
       );
       // 주문이 들어갔다고 실시간으로 알림
       await this.pubSub.publish(NEW_PENDING_ORDER, {
-        pendingOrders: { order, ownerId: restaurant.ownerId },
+        pendingOrder: { order, ownerId: restaurant.ownerId },
       });
       return {
         ok: true,

@@ -65,16 +65,16 @@ export class OrderResolver {
   @Subscription(() => Order, {
     // filter는 반드시 true/false를 리턴해야 한다.
     filter: (payload, variables, context) => {
-      // payload.pendingOrders.ownerId: 주문한 레스토랑의 소유자
+      // payload.pendingOrder.ownerId: 주문한 레스토랑의 소유자
       // context.user.id: 현재 로그인된 유저
-      if (payload.pendingOrders.ownerId === context.user.id) {
+      if (payload.pendingOrder.ownerId === context.user.id) {
         return true;
       }
     },
-    resolve: (payload) => payload.pendingOrders.order,
+    resolve: (payload) => payload.pendingOrder.order,
   })
   @Role('Owner')
-  pendingOrders() {
+  pendingOrder() {
     return this.pubSub.asyncIterator(NEW_PENDING_ORDER);
   }
 
