@@ -34,6 +34,7 @@
     "apollo-server-express": "^2.25.2",
     "aws-sdk": "^2.1044.0",
     "bcrypt": "^5.0.1",
+    "class-transformer": "^0.4.0",
     "class-validator": "^0.13.1",
     "cross-env": "^7.0.3",
     "form-data": "^3.0.1",
